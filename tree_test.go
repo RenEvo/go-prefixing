@@ -25,7 +25,24 @@ func TestRouterWithPathCleaner(t *testing.T) {
 	tree.addRoute(normalize("/api/metrics/:program"), http.NotFoundHandler())
 	tree.addRoute(normalize("/api/metrics/*/test"), http.NotFoundHandler())
 
+	// this doesn't work, because we don't have the longest prefix working properly, need to get this working.... in this codebase
+	tree.addRoute("/api/hosts", http.NotFoundHandler())
+	tree.addRoute("/api/hosts/*path", http.NotFoundHandler())
+
 	printChildren(t, tree, "")
+
+	if h, _, err := tree.getValue("/api/hosts"); h == nil {
+		t.Errorf("failed to resolve /api/hosts: %v", err)
+	}
+
+	if h, _, err := tree.getValue("/api/hosts/"); h == nil {
+		t.Errorf("failed to resolve /api/hosts: %v", err)
+	}
+
+	// this doesn't fail
+	if h, _, err := tree.getValue("/api/hosts/host1"); h == nil {
+		t.Errorf("failed to resolve /api/hosts/host1: %v", err)
+	}
 }
 
 func BenchmarkHTTPRouterTree(b *testing.B) {
